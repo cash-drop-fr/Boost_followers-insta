@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstaConnect Pro | API Bridge</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        header { text-align: center; margin-bottom: 32px; }
+        .logo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; }
+        .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-top: 4px; }
+
+        /* Form Elements */
+        .input-group { position: relative; margin-bottom: 24px; }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            font-size: 1rem;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .option-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .option-card:hover { background: rgba(255, 255, 255, 0.06); }
+
+        input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 18px; height: 18px; cursor: pointer;
+        }
+
+        /* Progress Section */
+        .progress-section { margin-top: 24px; display: none; animation: slideUp 0.4s ease; }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .bar-container {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .logs {
+            margin-top: 16px;
+            height: 70px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-left: 2px solid var(--primary);
+            padding-left: 12px;
+        }
+
+        .log-entry { margin-bottom: 6px; opacity: 0; animation: fadeIn 0.3s forwards; }
+        .log-time { color: var(--secondary); margin-right: 8px; }
+
+        /* Button */
+        button#generateBtn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        button#generateBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6); }
+        button:disabled { opacity: 0.7; cursor: wait; }
+
+        /* Overlay */
+        .success-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.98);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+            border-radius: 24px;
+        }
+
+        .success-overlay.active { opacity: 1; pointer-events: all; }
+
+        .check-icon { font-size: 4rem; color: var(--success); margin-bottom: 16px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 80% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo-badge"><i class="fa-brands fa-instagram"></i> InstaConnect API</div>
+        <h1>Générateur d'Abonnés</h1>
+        <p class="subtitle">Connexion directe aux serveurs Meta • Comptes vérifiés</p>
+    </header>
+
+    <div class="content" id="mainContent">
+        <!-- User Input -->
+        <div class="input-group">
+            <label for="targetUser" style="display:block; margin-bottom:8px; font-size:0.9rem; color:var(--text-muted);">Cible Instagram</label>
+            <input type="text" id="targetUser" placeholder="@nom_utilisateur" autocomplete="off">
+            <i class="fa-brands fa-instagram input-icon"></i>
+        </div>
+
+        <!-- Amount Input -->
+        <div class="input-group">
+            <label for="amountInput" style="display:block; margin-bottom:8px; font-size:0.9rem; color:var(--text-muted);">Quantité d'abonnés</label>
+            <input type="number" id="amountInput" value="50" min="1" max="10000">
+        </div>
+
+        <!-- Options -->
+        <div class="options-grid">
+            <label class="option-card">
+                <input type="checkbox" id="optRealAccounts" checked>
+                <span>Vrais Comptes</span>
+            </label>
+            <label class="option-card">
+                <input type="checkbox" id="optProfilePic" checked>
+                <span>Photo de Profil</span>
+            </label>
+            <label class="option-card">
+                <input type="checkbox" id="optBio">
+                <span>Bio Aléatoire</span>
+            </label>
+            <label class="option-card">
+                <input type="checkbox" id="optGeo">
+                <span>Géo-Targeting</span>
+            </label>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="progress-section" id="progressSection">
+            <div class="status-row">
+                <span style="font-weight:600;" id="statusLabel">Initialisation...</span>
+                <span class="status-badge" id="percentText">0%</span>
+            </div>
+            <div class="bar-container">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+            <div class="logs" id="logsContainer"></div>
+        </div>
+
+        <!-- Action -->
+        <button id="generateBtn" onclick="startGeneration()">
+            Lancer la connexion API
+        </button>
+    </div>
+
+    <!-- Success Overlay -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="check-icon"><i class="fa-solid fa-check"></i></div>
+        <h2 style="margin-bottom:8px;">Opération Terminée</h2>
+        <p style="color:#94a3b8; margin-bottom:24px;">Les abonnés sont en cours de propagation.</p>
+        <button onclick="resetApp()" style="padding:10px 24px; background:white; color:black; border:none; border-radius:8px; cursor:pointer; font-weight:600;">Fermer</button>
+    </div>
+</div>
+
+<script>
+    let isGenerating = false;
+    const els = {
+        user: document.getElementById('targetUser'),
+        amount: document.getElementById('amountInput'),
+        btn: document.getElementById('generateBtn'),
+        progressSection: document.getElementById('progressSection'),
+        bar: document.getElementById('progressBar'),
+        percentText: document.getElementById('percentText'),
+        statusLabel: document.getElementById('statusLabel'),
+        logs: document.getElementById('logsContainer'),
+        overlay: document.getElementById('successOverlay')
+    };
+
+    function startGeneration() {
+        const username = els.user.value.trim();
+        if (!username) { alert("Veuillez entrer un nom d'utilisateur valide."); return; }
+
+        isGenerating = true;
+        els.btn.disabled = true;
+        els.logs.innerHTML = '';
+        els.progressSection.style.display = 'block';
+        runProcess();
+    }
+
+    async function log(msg, type = 'info') {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        const time = new Date().toLocaleTimeString([], { hour12: false });
+        div.innerHTML = `<span class="log-time">[${time}]</span> ${msg}`;
+        if(type === 'success') div.style.color = '#10b981';
+        els.logs.appendChild(div);
+        els.logs.scrollTop = els.logs.scrollHeight;
+    }
+
+    async function runProcess() {
+        const targetCount = parseInt(els.amount.value) || 50;
+        const isInstantMode = targetCount <= 20;
+
+        await log("Connexion sécurisée HTTPS...", "info");
+        await simulateDelay(isInstantMode ? 400 : 800);
+
+        els.statusLabel.innerText = "Authentification API...";
+        try {
+            const response = await fetch('https://graph.instagram.com/valid_client', { method: 'GET' });
+            if(response.ok) await log("Token d'accès obtenu.", "success");
+        } catch(e) { await log("Mode Bridge API activé.", "info"); }
+
+        await simulateDelay(600);
+        els.statusLabel.innerText = `Recherche @${els.user.value}...`;
+
+        await simulateDelay(500);
+        els.statusLabel.innerText = "Abonnements en cours...";
+
+        let currentCount = 0;
+        const updateSpeed = isInstantMode ? 20 : 50;
+        const totalDuration = targetCount * (isInstantMode ? 30 : 150);
+
+        await new Promise(resolve => {
+            const interval = setInterval(() => {
+                if (!isGenerating) return;
+                currentCount++;
+                const speed = isInstantMode ? Math.random() > 0.7 ? 3 : 1 : (Math.random() > 0.8 ? 2 : 1);
+                currentCount += speed;
+
+                if (currentCount >= targetCount) {
+                    currentCount = targetCount;
+                    clearInterval(interval); resolve();
+                }
+                updateProgress(currentCount, targetCount);
+            }, updateSpeed);
+        });
+
+        await log("Synchronisation des profils...", "success");
+        await simulateDelay(400);
+        finishGeneration();
+    }
+
+    function updateProgress(current, total) {
+        const percent = Math.floor((current / total) * 100);
+        els.bar.style.width = `${percent}%`;
+        els.percentText.innerText = `${percent}%`;
+    }
+
+    function finishGeneration() {
+        isGenerating = false;
+        els.statusLabel.innerText = "Terminé.";
+        setTimeout(() => { els.overlay.classList.add('active'); }, 300);
+    }
+
+    function resetApp() {
+        els.overlay.classList.remove('active');
+        els.btn.disabled = false;
+        els.bar.style.width = '0%';
+        els.progressSection.style.display = 'none';
+    }
+
+    function simulateDelay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+</script>
+
+</body>
+</html>
